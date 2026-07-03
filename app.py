@@ -136,7 +136,7 @@ fig = px.scatter_geo(
     size="size",
     projection="natural earth",
     opacity=0.85,
-    center={"lat": 20, "lon": 0},  # Центр карты — экватор
+    center={"lat": 20, "lon": 0}, 
     scope="world",
 )
 
@@ -217,8 +217,8 @@ st.plotly_chart(fig_line, use_container_width=True)
 if len(history_df) > 5:
     last_values = history_df["Сглаженное значение"].tail(5)
     trend = last_values.iloc[-1] - last_values.iloc[0]
-    future_value = int(last_values.iloc[-1] + trend * 0.3)  # экстраполяция
-    future_value = max(0, future_value)  # не может быть меньше 0
+    future_value = int(last_values.iloc[-1] + trend * 0.3) 
+    future_value = max(0, future_value)
 else:
     future_value = current_count
 
@@ -262,7 +262,7 @@ time.sleep(5)
 st.rerun()
 
 with st.sidebar:
-    st.image("https://itmo.ru/file/pages/231/logo.png", width=200)  # Логотип ИТМО
+    st.image("https://itmo.ru/file/pages/231/logo.png", width=200)  # ЛОГО
     st.markdown("### О проекте")
     st.markdown("""
     **Цель:** Мониторинг киберугроз  

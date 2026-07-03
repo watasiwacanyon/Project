@@ -5,14 +5,11 @@ import time
 import plotly.express as px
 from faker import Faker
 
-# Настройка страницы
 st.set_page_config(page_title="ITMO Security Monitor", layout="wide")
-st.title("🚨 Центр мониторинга угроз")
+st.title("Центр мониторинга угроз")
 
-# Генератор случайных данных
 fake = Faker()
 
-# Координаты стран для отображения на карте
 country_coords = {
     "Russia": [61.0, 90.0],
     "USA": [37.0, -95.0],
@@ -68,17 +65,14 @@ country_coords = {
     "Kenya": [-1.0, 38.0],
 }
 
-# Генерация списка угроз
 def generate_threats(count=20):
     threats = []
     countries = list(country_coords.keys())
     for _ in range(count):
         country = random.choice(countries)
         coords = country_coords[country]
-        # Небольшой разброс координат для реалистичности
         lat = coords[0] + random.uniform(-3, 3)
         lon = coords[1] + random.uniform(-3, 3)
-        # Уровни опасности с весами
         severity = random.choices(
             ["Низкий", "Средний", "Высокий", "Критичный"],
             weights=[20, 40, 25, 15],
@@ -95,34 +89,29 @@ def generate_threats(count=20):
         })
     return threats
 
-# Хранилище данных между обновлениями страницы
 if "threats" not in st.session_state:
     st.session_state.threats = generate_threats(20)
     st.session_state.attack_count = 0
     st.session_state.frame = 0
-    # История для графика
     st.session_state.history = []
 
-# Кнопка ручного обновления
-if st.button("🔄 Симулировать волну атак", use_container_width=True):
+
+if st.button("Симулировать волну атак", use_container_width=True):
     new_threats = generate_threats(random.randint(5, 10))
     st.session_state.threats.extend(new_threats)
     st.session_state.attack_count += random.randint(1, 5)
-    # Ограничиваем количество точек, чтобы не тормозило
     if len(st.session_state.threats) > 60:
         st.session_state.threats = st.session_state.threats[-60:]
 
-# Автоматическое добавление новых угроз (не чаще чем каждые 3 цикла)
 if st.session_state.frame % 3 == 0 and len(st.session_state.threats) < 50:
     new_threats = generate_threats(random.randint(1, 2))
     st.session_state.threats.extend(new_threats)
 
 st.session_state.frame += 1
 
-# Датафрейм
+
 df = pd.DataFrame(st.session_state.threats)
 
-# Цвета для уровней опасности
 severity_colors = {
     "Низкий": "#00ff88",
     "Средний": "#ffcc00",
@@ -130,11 +119,11 @@ severity_colors = {
     "Критичный": "#ff0044"
 }
 
-# Размер точек в зависимости от опасности
+
 size_map = {"Низкий": 8, "Средний": 12, "Высокий": 18, "Критичный": 25}
 df["size"] = df["severity"].map(size_map)
 
-# Карта
+
 fig = px.scatter_geo(
     df,
     lat="lat",
@@ -143,7 +132,7 @@ fig = px.scatter_geo(
     hover_name="country",
     hover_data={"ip": True, "severity": True, "port": True, "timestamp": True},
     color_discrete_map=severity_colors,
-    title="🌍 Карта активных угроз в реальном времени",
+    title="Карта активных угроз в реальном времени",
     size="size",
     projection="natural earth",
     opacity=0.85,
@@ -151,7 +140,7 @@ fig = px.scatter_geo(
     scope="world",
 )
 
-# Оформление карты (тёмная тема)
+
 fig.update_layout(
     geo=dict(
         showland=True,
@@ -180,30 +169,30 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
-# График
-st.subheader("📈 Изменение количества угроз во времени")
 
-# Добавляем текущее значение в историю
+st.subheader("Изменение количества угроз во времени")
+
+
 current_count = len(df)
 st.session_state.history.append(current_count)
-# Храним последние 30 значений
+
 if len(st.session_state.history) > 30:
     st.session_state.history = st.session_state.history[-30:]
 
-# Строим график
+
 history_df = pd.DataFrame({
     "Время": list(range(len(st.session_state.history))),
     "Угрозы": st.session_state.history
 })
 
-# Скользящее среднее (просто сглаживание)
+
 history_df["Сглаженное значение"] = history_df["Угрозы"].rolling(window=5, min_periods=1).mean()
 
 fig_line = px.line(
     history_df,
     x="Время",
     y=["Угрозы", "Сглаженное значение"],
-    title="📊 Текущее количество угроз (синий) и сглаженный тренд (оранжевый)",
+    title="Текущее количество угроз (синий) и сглаженный тренд (оранжевый)",
     labels={"value": "Количество угроз", "variable": "Тип"},
     color_discrete_map={"Угрозы": "#00aaff", "Сглаженное значение": "#ff8800"}
 )
@@ -225,7 +214,6 @@ fig_line.update_layout(
 
 st.plotly_chart(fig_line, use_container_width=True)
 
-# Простой прогноз на основе последних данных
 if len(history_df) > 5:
     last_values = history_df["Сглаженное значение"].tail(5)
     trend = last_values.iloc[-1] - last_values.iloc[0]
@@ -234,18 +222,16 @@ if len(history_df) > 5:
 else:
     future_value = current_count
 
-# Показываем прогноз
 col_pred1, col_pred2, col_pred3 = st.columns(3)
-col_pred1.metric("🔮 Прогноз через 10 сек", f"{future_value} угроз")
-col_pred2.metric("📊 Текущий уровень", f"{current_count} угроз")
+col_pred1.metric("Прогноз через 10 сек", f"{future_value} угроз")
+col_pred2.metric("Текущий уровень", f"{current_count} угроз")
 if future_value > current_count:
-    col_pred3.metric("📈 Тренд", "📈 Рост")
+    col_pred3.metric(" Тренд", " Рост")
 elif future_value < current_count:
-    col_pred3.metric("📈 Тренд", "📉 Спад")
+    col_pred3.metric(" Тренд", " Спад")
 else:
-    col_pred3.metric("📈 Тренд", "➡️ Стабильно")
+    col_pred3.metric(" Тренд", " Стабильно")
 
-# Статистика 
 col1, col2, col3, col4 = st.columns(4)
 critical = df[df["severity"] == "Критичный"].shape[0]
 high = df[df["severity"] == "Высокий"].shape[0]
@@ -258,29 +244,26 @@ col3.metric("🟡 Средних", medium)
 col4.metric("🟢 Низких", low)
 
 col5, col6, col7, col8 = st.columns(4)
-col5.metric("🌐 Стран затронуто", df["country"].nunique())
-col6.metric("⚔️ Атак отражено", st.session_state.attack_count)
-col7.metric("📡 Всего угроз", len(df))
-col8.metric("🔄 Обновлено", df["timestamp"].iloc[-1] if len(df) > 0 else "—")
+col5.metric("Стран затронуто", df["country"].nunique())
+col6.metric("Атак отражено", st.session_state.attack_count)
+col7.metric("Всего угроз", len(df))
+col8.metric("Обновлено", df["timestamp"].iloc[-1] if len(df) > 0 else "—")
 
-# Логи
-with st.expander("📋 Детальный лог угроз (последние 20)"):
+with st.expander("Детальный лог угроз (последние 20)"):
     st.dataframe(
         df[["ip", "country", "severity", "port", "timestamp"]].tail(20),
         width='stretch',
         hide_index=True
     )
 
-st.caption("🔄 Данные обновляются автоматически каждые 3 секунды")
+st.caption("Данные обновляются автоматически каждые 3 секунды")
 
-# Обновление страницы
 time.sleep(5)
 st.rerun()
 
-# Боковая панель с информацией
 with st.sidebar:
     st.image("https://itmo.ru/file/pages/231/logo.png", width=200)  # Логотип ИТМО
-    st.markdown("### 📊 О проекте")
+    st.markdown("### О проекте")
     st.markdown("""
     **Цель:** Мониторинг киберугроз  
     **Технологии:** Python, Streamlit, Plotly  
